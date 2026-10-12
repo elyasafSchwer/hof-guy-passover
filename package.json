@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Client-side Passover package price quote generator for Hof Guy Hotel",
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

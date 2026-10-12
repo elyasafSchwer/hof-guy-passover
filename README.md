@@ -44,6 +44,7 @@ npm run dev      # http://localhost:5173
 | `npm run deploy`  | Build + publish `dist/` to the `gh-pages` branch           |
 
 **Stack:** React 19 · Vite 7 · Tailwind CSS 4. No runtime dependencies beyond React.
+Requires Node ≥ 20.19 (declared in `engines`, so Vercel picks a compatible runtime).
 
 ---
 
@@ -272,7 +273,44 @@ Then set **Settings → Pages → Source: Deploy from a branch → `gh-pages` / 
 ### Vercel
 
 Import the repo at [vercel.com/new](https://vercel.com/new). Vercel detects Vite
-automatically — build command `npm run build`, output directory `dist`. No env vars.
+automatically — build command `npm run build`, output directory `dist`. No env vars,
+and no `vercel.json` is needed (single page, no routing).
+
+### ⚠️ Private registries and the lockfile
+
+If your machine has a global `~/.npmrc` pointing at a corporate registry
+(Artifactory, Nexus, Verdaccio…), `npm install` rewrites **every** `resolved` URL in
+`package-lock.json` to that host. The committed lockfile then fails in CI, which has
+no credentials for it:
+
+```
+npm error code E401
+npm error Incorrect or missing password.
+Error: Command "npm install" exited with 1
+```
+
+The committed `.npmrc` in this repo pins `registry=https://registry.npmjs.org/` to
+prevent that. All dependencies are public, so this is safe. **Keep `.npmrc`
+committed** — it is what makes the lockfile portable.
+
+If a private URL ever creeps back in, check and regenerate:
+
+```bash
+grep -c 'resolved": "https://registry.npmjs.org' package-lock.json   # should equal...
+grep -c '"resolved"' package-lock.json                                # ...this
+
+# Regenerate cleanly. node_modules must be absent, or npm reuses the old URLs
+# from its hidden lockfile at node_modules/.package-lock.json.
+mkdir /tmp/lockgen && cp package.json .npmrc /tmp/lockgen/
+cd /tmp/lockgen && npm install --package-lock-only --registry=https://registry.npmjs.org/
+cp package-lock.json -  # back into the project
+```
+
+To reproduce a CI install locally, hide your global config so npm cannot read it:
+
+```bash
+HOME=/tmp/empty-home npm ci && HOME=/tmp/empty-home npm run build
+```
 
 ### Netlify / any static host
 
