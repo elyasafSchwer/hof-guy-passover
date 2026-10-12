@@ -6,8 +6,8 @@ calculator for Passover vacation packages at Hof Guy Hotel (מלון חוף גי
 Guests pick their dates, guest type and room composition; the app shows an itemised
 estimate and hands off to the booking coordinator through a pre-filled WhatsApp message.
 
-> No backend, no database, no payments, no inventory. Everything runs in the browser,
-> so it deploys as static files to GitHub Pages, Vercel, Netlify or any CDN.
+> No backend, no database, no payments, no inventory. Everything runs in the browser
+> and deploys as static files — it runs on Vercel, Netlify or any CDN.
 
 ---
 
@@ -41,7 +41,6 @@ npm run dev      # http://localhost:5173
 | `npm run build`   | Production build into `dist/`                              |
 | `npm run preview` | Serve the production build locally                         |
 | `npm run verify`  | Pricing/validation sanity checks (plain Node, no deps)     |
-| `npm run deploy`  | Build + publish `dist/` to the `gh-pages` branch           |
 
 **Stack:** React 19 · Vite 7 · Tailwind CSS 4. No runtime dependencies beyond React.
 Requires Node ≥ 20.19 (declared in `engines`, so Vercel picks a compatible runtime).
@@ -234,47 +233,35 @@ src/
     ├── PriceBreakdown.jsx      # the visible-math panel and rows
     └── QuoteSummary.jsx        # breakdown, totals, WhatsApp CTA
 scripts/verify-pricing.mjs      # npm run verify
-.github/workflows/deploy.yml    # GitHub Pages CI
+.github/workflows/ci.yml        # verify + build on push/PR
 ```
 
 ---
 
 ## Deployment
 
-`vite.config.js` sets `base: './'`, so the build uses relative asset paths and the same
-`dist/` works at any sub-path. There is no router, so no SPA rewrite rules are needed.
-
-### GitHub Pages — automatic (recommended)
-
-1. Create the repo and push:
-
-   ```bash
-   git init
-   git add .
-   git commit -m "Passover quote generator"
-   git branch -M main
-   git remote add origin https://github.com/<user>/<repo>.git
-   git push -u origin main
-   ```
-
-2. In the repo: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-
-3. The included workflow (`.github/workflows/deploy.yml`) builds and publishes on every
-   push to `main`. The site lands at `https://<user>.github.io/<repo>/`.
-
-### GitHub Pages — manual
-
-```bash
-npm run deploy      # builds and pushes dist/ to the gh-pages branch
-```
-
-Then set **Settings → Pages → Source: Deploy from a branch → `gh-pages` / root**.
+Deployed on **Vercel**. `vite.config.js` sets `base: './'`, so the build uses relative
+asset paths and the same `dist/` works at a domain root or any sub-path. There is no
+router, so no SPA rewrite rules are needed.
 
 ### Vercel
 
 Import the repo at [vercel.com/new](https://vercel.com/new). Vercel detects Vite
 automatically — build command `npm run build`, output directory `dist`. No env vars,
-and no `vercel.json` is needed (single page, no routing).
+and no `vercel.json` is needed (single page, no routing). Every push to `main`
+redeploys.
+
+### Any other static host
+
+```bash
+npm run build       # then serve the contents of dist/
+```
+
+### Continuous integration
+
+`.github/workflows/ci.yml` runs `npm ci`, `npm run verify` and `npm run build` on every
+push and pull request. It only checks correctness — deployment is Vercel's job — and it
+exists because Vercel builds the app but never runs the 27 pricing/encoding checks.
 
 ### ⚠️ Private registries and the lockfile
 
