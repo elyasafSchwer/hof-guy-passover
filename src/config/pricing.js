@@ -2,7 +2,7 @@
  * ---------------------------------------------------------------------------
  *  PRICING CONFIGURATION
  * ---------------------------------------------------------------------------
- *  All prices are in ILS and INCLUDE 17% Israeli VAT.
+ *  All prices are in ILS and INCLUDE Israeli VAT at VAT_RATE (see below).
  *
  *  `basePrice` is the price of a FULL 7-NIGHT stay. The Passover window runs
  *  21–28 April, which is exactly 7 nights — the full package at 100%.
@@ -16,8 +16,17 @@
 /** The number of nights the `basePrice` figures represent. */
 export const BASE_NIGHTS = 7
 
-/** Israeli VAT rate. Tourists are exempt: total / (1 + VAT_RATE). */
-export const VAT_RATE = 0.17
+/**
+ * Israeli VAT rate. Tourists are exempt: total / (1 + VAT_RATE).
+ *
+ * This is the single source of truth for the rate — the calculation, every
+ * on-screen percentage and the WhatsApp text all derive from it, so changing
+ * this line is the whole job. (Israel moved from 17% to 18% in January 2025.)
+ */
+export const VAT_RATE = 0.18
+
+/** VAT as a whole-number percentage, for display: 18. */
+export const VAT_PERCENT = Math.round(VAT_RATE * 100)
 
 /** Flat surcharge per infant (age 0–2), per night. Never prorated. */
 export const INFANT_PRICE_PER_NIGHT = 100
@@ -110,7 +119,10 @@ export const GUEST_TYPES = [
     id: 'israeli',
     vatExempt: false,
     label: { en: 'Israeli Citizen', he: 'אזרח ישראלי' },
-    note: { en: 'Includes 17% VAT', he: 'כולל מע״מ 17%' },
+    note: {
+      en: `Includes ${VAT_PERCENT}% VAT`,
+      he: `כולל מע״מ ${VAT_PERCENT}%`,
+    },
   },
   {
     id: 'tourist',

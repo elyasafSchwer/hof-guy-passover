@@ -16,6 +16,10 @@ import {
 import { sanitizeForPlainText, hasAstralChars, toBmpSafe } from '../src/lib/format.js'
 import { translate } from '../src/i18n/translations.js'
 import { DATE_LIMITS, DEFAULT_DATES } from '../src/config/appConfig.js'
+import { VAT_PERCENT, VAT_RATE, getGuestType } from '../src/config/pricing.js'
+
+/** Derived from config, so a VAT change needs no edits in this file. */
+const VAT_DIVISOR = 1 + VAT_RATE
 
 let passed = 0
 function check(name, fn) {
@@ -84,7 +88,7 @@ check('infants are a flat nightly charge, never prorated', () => {
   assert.equal(quote.total, 24080 + 1400)
 })
 
-check('tourists have 17% VAT removed from the total', () => {
+check(`tourists have ${VAT_PERCENT}% VAT removed from the total`, () => {
   const israeli = calculateQuote({
     checkIn: '2027-04-21',
     checkOut: '2027-04-28', // full package: 7 nights
@@ -98,7 +102,7 @@ check('tourists have 17% VAT removed from the total', () => {
     rooms: [room('three_adults')],
   })
   assert.equal(israeli.total, 33712)
-  assert.equal(tourist.total, Math.round(33712 / 1.17)) // 28814
+  assert.equal(tourist.total, Math.round(33712 / VAT_DIVISOR))
   assert.equal(tourist.vatDeduction, israeli.total - tourist.total)
   assert.equal(israeli.vatDeduction, 0)
 })
@@ -117,7 +121,7 @@ check('room lines are VAT-inclusive and sum to the subtotal', () => {
   const sum = quote.rooms.reduce((acc, r) => acc + r.total, 0)
   assert.equal(quote.subtotal, sum)
   // The VAT exemption is one division applied to that subtotal.
-  assert.equal(quote.total, Math.round(quote.subtotal / 1.17))
+  assert.equal(quote.total, Math.round(quote.subtotal / VAT_DIVISOR))
   assert.equal(quote.subtotal - quote.vatDeduction, quote.total)
 })
 
@@ -152,7 +156,7 @@ check('the breakdown exposes the inputs needed to show the math', () => {
   })
   assert.equal(quote.baseNights, 7)
   assert.equal(quote.infantRate, 100)
-  assert.equal(quote.vatDivisor, 1.17)
+  assert.equal(quote.vatDivisor, VAT_DIVISOR)
   assert.equal(quote.rooms[0].basePrice, 24080)
   // Every figure the UI prints in a formula must be a whole number.
   const r = quote.rooms[0]
@@ -181,6 +185,37 @@ check('unknown composition ids are skipped, not crashed on', () => {
     rooms: [room('nonexistent_id'), room('one_adult')],
   })
   assert.equal(quote.rooms.length, 1)
+})
+
+check(`VAT_RATE is ${VAT_PERCENT}% and the divisor prints cleanly`, () => {
+  assert.equal(VAT_RATE, 0.18)
+  assert.equal(VAT_PERCENT, 18)
+  // Guard against float noise leaking into the UI, e.g. "1.1800000000000002".
+  assert.equal(String(1 + VAT_RATE), '1.18')
+})
+
+check('no hardcoded percentage survives in the guest-type copy', () => {
+  for (const lang of ['he', 'en']) {
+    const strings = [
+      getGuestType('israeli').note[lang],
+      getGuestType('tourist').note[lang],
+      translate(lang, 'guestTypeHint', { percent: VAT_PERCENT }),
+    ]
+    for (const s of strings) {
+      // Any percentage mentioned must be the configured one.
+      for (const [, pct] of s.matchAll(/(\d+)\s*%/g)) {
+        assert.equal(
+          Number(pct),
+          VAT_PERCENT,
+          `"${s}" mentions ${pct}% but VAT is ${VAT_PERCENT}%`,
+        )
+      }
+    }
+    assert.ok(
+      strings.some((s) => s.includes(`${VAT_PERCENT}%`)),
+      `${lang} copy never states the ${VAT_PERCENT}% rate`,
+    )
+  }
 })
 
 console.log('\nDates & validation')
@@ -375,7 +410,10 @@ check('the tourist message shows the VAT calculation', () => {
   const quote = sampleQuote('tourist')
   const message = messageFor('he', 'tourist')
   assert.ok(message.includes('סכום ביניים'), 'no subtotal line')
-  assert.ok(message.includes('1.17'), 'no VAT divisor shown')
+  assert.ok(
+    message.includes(String(VAT_DIVISOR)),
+    `no VAT divisor ${VAT_DIVISOR} shown`,
+  )
   assert.ok(
     message.includes(quote.total.toLocaleString('en-US')),
     'final total missing from the message',

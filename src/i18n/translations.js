@@ -36,7 +36,8 @@ export const translations = {
 
     /* --- guest type --- */
     guestTypeTitle: 'סוג אורח',
-    guestTypeHint: 'תיירים בעלי דרכון זר פטורים ממע״מ בשיעור 17%',
+    guestTypeHint: ({ percent }) =>
+      `תיירים בעלי דרכון זר פטורים ממע״מ בשיעור ${percent}%`,
 
     /* --- rooms --- */
     roomsTitle: 'הרכב החדרים',
@@ -138,7 +139,8 @@ export const translations = {
 
     /* --- guest type --- */
     guestTypeTitle: 'Guest Type',
-    guestTypeHint: 'Foreign-passport tourists are exempt from the 17% VAT',
+    guestTypeHint: ({ percent }) =>
+      `Foreign-passport tourists are exempt from the ${percent}% VAT`,
 
     /* --- rooms --- */
     roomsTitle: 'Rooms',

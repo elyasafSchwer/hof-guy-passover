@@ -117,7 +117,7 @@ export function calculateQuote({ checkIn, checkOut, guestTypeId, rooms }) {
     baseNights: BASE_NIGHTS,
     infantRate: INFANT_PRICE_PER_NIGHT,
     vatRate: VAT_RATE,
-    /** The divisor shown in the VAT breakdown, e.g. 1.17. */
+    /** The divisor shown in the VAT breakdown, e.g. 1.18. */
     vatDivisor: 1 + VAT_RATE,
     guestType,
     vatExempt,

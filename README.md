@@ -21,7 +21,7 @@ estimate and hands off to the booking coordinator through a pre-filled WhatsApp 
 - **Rooms builder** — add up to 10 rooms, each with its own composition and infant count.
 - **Transparent pricing** — a **Price breakdown** panel shows the actual arithmetic for
   every room (`24,080 × (7 / 7) = 24,080 ₪`), the infant line, and the tourist VAT
-  division (`25,480 ÷ 1.17 = 21,778 ₪`) before the final total.
+  division (`25,480 ÷ 1.18 = 21,593 ₪`) before the final total.
 - **WhatsApp hand-off** — an emoji-formatted `wa.me` deep link with the full booking
   summary, plus a "copy summary" fallback.
 - **Estimate disclaimer** shown on every quote, in both languages.
@@ -84,7 +84,7 @@ is exactly **7 nights** — the full package at 100% of the base price.
 
 ```js
 export const BASE_NIGHTS = 7              // basePrice covers a 7-NIGHT stay
-export const VAT_RATE = 0.17              // tourists: total / (1 + VAT_RATE)
+export const VAT_RATE = 0.18              // tourists: total / (1 + VAT_RATE)
 export const INFANT_PRICE_PER_NIGHT = 100 // per night, never prorated
 export const ROOM_COMPOSITIONS = [ /* id, basePrice, bilingual label */ ]
 ```
@@ -116,7 +116,7 @@ Then once, for the whole booking:
 
 ```
 subtotal = sum of all roomTotal
-total    = tourist ? round(subtotal / 1.17) : subtotal
+total    = tourist ? round(subtotal / 1.18) : subtotal
 ```
 
 | Stay | Nights | Share of base |
@@ -138,8 +138,8 @@ Infant addition (7 nights)        2 × 100 × 7 =  1,400 ₪
 Room total                  24,080 +    1,400 = 25,480 ₪
 ──────────────────────────────────────────────────────────
 Subtotal (incl. VAT)                           = 25,480 ₪
-VAT exemption               25,480 ÷ 1.17      = 21,778 ₪
-VAT removed                 25,480 − 21,778    =  3,702 ₪
+VAT exemption               25,480 ÷ 1.18      = 21,593 ₪
+VAT removed                 25,480 − 21,593    =  3,887 ₪
 ```
 
 Each of those lines is rendered in the app, per room and for the booking as a whole,

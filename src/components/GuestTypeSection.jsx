@@ -1,12 +1,16 @@
 import Card from './Card.jsx'
-import { GUEST_TYPES } from '../config/pricing.js'
+import { GUEST_TYPES, VAT_PERCENT } from '../config/pricing.js'
 import { useLanguage } from '../i18n/LanguageContext.jsx'
 
 export default function GuestTypeSection({ value, onChange }) {
   const { lang, t } = useLanguage()
 
   return (
-    <Card step={2} title={t('guestTypeTitle')} hint={t('guestTypeHint')}>
+    <Card
+      step={2}
+      title={t('guestTypeTitle')}
+      hint={t('guestTypeHint', { percent: VAT_PERCENT })}
+    >
       <div
         role="radiogroup"
         aria-label={t('guestTypeTitle')}
